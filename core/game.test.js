@@ -1,7 +1,8 @@
 import {Game} from "./game";
-import {GameStatuses} from "./game-statuses";
+import {GameStatuses} from "./constants/game-statuses";
 import expect from "expect";
 import {ShogunNumberUtility} from "./utils/shogunNumberUtility";
+import {Position} from "./position";
 
 describe('game', () => {
     it('game should be created and return status', () => {
@@ -21,13 +22,24 @@ describe('game', () => {
             const game = new Game(numberUtil)
             expect(game.googlePosition).toBeNull()
             await game.start()
-            expect(game.googlePosition.x).toBeLessThan(game.gridSize.columnCount)
+            expect(game.googlePosition.x).toBeLessThan(game.gridSize.columnsCount)
             expect(game.googlePosition.x).toBeGreaterThanOrEqual(0)
             expect(game.googlePosition.y).toBeLessThan(game.gridSize.rowsCount)
             expect(game.googlePosition.y).toBeGreaterThanOrEqual(0)
         }
     })
-
+    it('player should be in the Grid after start', async () => {
+        const numberUtil = new ShogunNumberUtility()
+        for (let i = 0; i < 100; i++) {
+            const game = new Game(numberUtil)
+            expect(game.player1Position).toBeNull()
+            await game.start()
+            expect(game.player1Position.x).toBeLessThan(game.gridSize.columnsCount)
+            expect(game.player1Position.x).toBeGreaterThanOrEqual(0)
+            expect(game.player1Position.y).toBeLessThan(game.gridSize.rowsCount)
+            expect(game.player1Position.y).toBeGreaterThanOrEqual(0)
+        }
+    })
     it('google should be in the Grid but in the new position after jump', async () => {
         const numberUtil = new ShogunNumberUtility()
         const game = new Game(numberUtil)
@@ -38,9 +50,90 @@ describe('game', () => {
             const prevGooglePosition = game.googlePosition
             await delay(1)
             const currentGooglePosition = game.googlePosition
-            expect(prevGooglePosition).not.toEqual(currentGooglePosition)
+            expect(prevGooglePosition).not.toEqual(currentGooglePosition);
         }
     })
+
+    it('player should be move in correct directions', async () => {
+        const numberUtil = new ShogunNumberUtility()
+        const fakeNumberUtility = {
+            getRandomIntegerNumber(from, to) {
+                return 2
+            }
+        }
+        const game = new Game(fakeNumberUtility)
+        await game.start()
+        game.gridSize = {
+            columnsCount: 3,
+            rowsCount: 3,
+        }
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        // [  ][  ][p1]
+        expect(game.player1Position).toEqual({x: 2, y: 2})
+
+        game.movePlayer(1, 'RIGHT')
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        // [  ][  ][p1]
+        expect(game.player1Position).toEqual({x: 2, y: 2})
+
+        game.movePlayer(1, 'DOWN')
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        // [  ][  ][p1]
+        expect(game.player1Position).toEqual({x: 2, y: 2})
+
+        game.movePlayer(1, 'UP')
+        // [  ][  ][  ]
+        // [  ][  ][p1]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 2, y: 1})
+
+        game.movePlayer(1, 'UP')
+        // [  ][  ][p1]
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 2, y: 0})
+
+        game.movePlayer(1, 'LEFT')
+        // [  ][p1][  ]
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 1, y: 0})
+
+        game.movePlayer(1, 'LEFT')
+        // [p1][  ][  ]
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 0, y: 0})
+
+        game.movePlayer(1, 'LEFT')
+        // [p1][  ][  ]
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 0, y: 0})
+
+        game.movePlayer(1, 'UP')
+        // [p1][  ][  ]
+        // [  ][  ][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 0, y: 0})
+
+        game.movePlayer(1, 'DOWN')
+        // [  ][  ][  ]
+        // [p1][  ][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 0, y: 1})
+
+        game.movePlayer(1, 'RIGHT')
+        // [  ][  ][  ]
+        // [  ][p1][  ]
+        // [  ][  ][  ]
+        expect(game.player1Position).toEqual({x: 1, y: 1})
+
+    })
+
 })
 
-const delay = (ms) => new Promise(res=>setTimeout(res,ms))
+const delay = (ms) => new Promise(res => setTimeout(res, ms))
