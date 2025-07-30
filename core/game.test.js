@@ -1,7 +1,6 @@
-import {Game} from "./game";
-import {GameStatuses} from "./constants/game-statuses";
-import expect from "expect";
-import {ShogunNumberUtility} from "./utils/shogunNumberUtility";
+import {Game} from "./game.js";
+import {GameStatuses} from "./constants/game-statuses.js";
+import {ShogunNumberUtility} from "./utils/shogunNumberUtility.js";
 import {Position} from "./position";
 
 describe('game', () => {

@@ -1,7 +1,7 @@
-import {GameStatuses} from "./constants/game-statuses";
-import {GridSize} from "./gridSize";
-import {directions} from "./constants/directions";
-import {Position} from "./position";
+import {GameStatuses} from "./constants/game-statuses.js";
+import {directions} from "./constants/directions.js";
+import {Position} from "./position.js";
+import {Settings} from "./settings.js";
 
 export class Game {
     #numberUtility
@@ -11,14 +11,8 @@ export class Game {
     }
 
     #status = GameStatuses.SETTINGS
-    #settings = {
-        gridSize: new GridSize(4, 4),
-        googleJumpInterval: 1,
-    }
+    #settings = new Settings([4, 4], 1000)
     #positions = {
-        // google: {x: null, y: null},
-        // player1: {x: null, y: null},
-        // player2: {x: null, y: null},
         google: null,
         player1: null,
         player2: null,
@@ -29,23 +23,48 @@ export class Game {
         player2: 0,
     }
     #pointsToWin = {
-        google: 10,
-        players: 10,
+        google: 15,
+        players: 2,
     }
     #winner = null
+    #googleJumpIntervalId = null;
+
+    #observers = []
+
+    subscribe(observerFunction) {
+        this.#observers.push(observerFunction)
+    }
+
+    #notify() {
+        this.#observers.forEach(o => o())
+    }
 
     start() {
         if (this.#status !== GameStatuses.SETTINGS) {
-            throw new Error('Game must be in Settings before Start')
+            throw new Error('Game must be in Settings before Start');
         }
-        this.#status = GameStatuses.IN_PROGRESS
-        this.#placePlayer1ToGrid()
-        this.#placePlayer2ToGrid()
-        this.#makeGoogleJump()
+        this.#status = GameStatuses.IN_PROGRESS;
+        this.#placePlayer1ToGrid();
+        this.#placePlayer2ToGrid();
 
-        setInterval(() => {
-            this.#makeGoogleJump()
-        }, this.#settings.googleJumpInterval)
+        this.#startGoogleJumpInterval();
+
+        this.#notify();
+    }
+
+    #startGoogleJumpInterval() {
+        this.#stopGoogle();
+        this.#makeGoogleJump();
+        this.#googleJumpIntervalId = setInterval(() => {
+            this.#makeGoogleJump();
+        }, this.#settings.googleJumpInterval);
+    }
+
+    #stopGoogle() {
+        if (this.#googleJumpIntervalId) {
+            clearInterval(this.#googleJumpIntervalId);
+            this.#googleJumpIntervalId = null;
+        }
     }
 
     movePlayer(playerNumber, moveDirection) {
@@ -83,15 +102,20 @@ export class Game {
         }
 
         this.#positions[currentPlayer] = newPosition;
-        if (
-            this.#positions[currentPlayer].x === this.googlePosition?.x &&
-            this.#positions[currentPlayer].y === this.googlePosition?.y
-        ) {
-            ++this.#points[currentPlayer]
+
+        // Проверка поймали ли Google
+        if (this.#positions[currentPlayer].x === this.googlePosition?.x &&
+            this.#positions[currentPlayer].y === this.googlePosition?.y) {
+            ++this.#points[currentPlayer];
+
+            this.#startGoogleJumpInterval();
+
             if (this.#points[currentPlayer] === this.pointsToWin.players) {
-                this.#status = 'WIN'
+                this.#status = 'WIN';
+                this.#stopGoogle();
             }
         }
+        this.#notify();
     }
 
     #getRandomPosition() {
@@ -118,19 +142,25 @@ export class Game {
         if (this.#points.google === this.pointsToWin.google) {
             this.#winner = 'Google'
             this.#status = GameStatuses.LOSE
+            this.#stopGoogle()
         }
+        this.#notify()
     }
 
     #makeGoogleJump() {
         const newPosition = this.#getRandomPosition();
-
-        if (newPosition.equal(this.googlePosition)) {
+        if (
+            newPosition.equal(this.googlePosition) ||
+            newPosition.equal(this.player1Position) ||
+            newPosition.equal(this.player2Position)
+        ) {
             this.#makeGoogleJump();
             return;
         }
 
         this.#positions.google = newPosition;
-        this.#scoringGoogle()
+        this.#notify()
+
     }
 
     get status() {
@@ -153,14 +183,6 @@ export class Game {
         return this.#points
     }
 
-    set gridSize(value) {
-        this.#settings.gridSize = value
-    }
-
-    set pointsToWin (value) {
-        this.#pointsToWin = value
-    }
-
     get googlePosition() {
         return this.#positions.google ?
             {x: this.#positions.google.x, y: this.#positions.google.y} :
@@ -177,6 +199,16 @@ export class Game {
         return this.#positions.player2 ?
             {x: this.#positions.player2.x, y: this.#positions.player2.y} :
             null;
+    }
+
+    set pointsToWin(value) {
+        this.#pointsToWin = value
+        this.#notify()
+    }
+
+    set gridSize(value) {
+        this.#settings.gridSize = value
+
     }
 
     /**
@@ -197,6 +229,7 @@ export class Game {
             throw new Error('Interval must be more than 0')
         }
         this.#settings.googleJumpInterval = newValue
+        this.#notify()
     }
 }
 

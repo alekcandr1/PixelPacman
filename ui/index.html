@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>PixelPacman</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon/favicon-64x64.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="favicon/favicon-128x128.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="favicon/favicon-256x256.png">
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="192x192" href="favicon/android-chrome-192x192.png">
+
+    <style>
+        td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center;
+            width: 70px;
+            height: 70px;
+        }
+        .game-grid {
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+
+        .game-grid td {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ddd;
+            text-align: center;
+            vertical-align: middle;
+            transition: all 0.3s;
+        }
+
+        .player1 {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .player2 {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .google {
+            background-color: #FFC107;
+            font-weight: bold;
+        }
+
+        @keyframes appear {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="index.js" type="module"></script>
+</body>
+</html>
